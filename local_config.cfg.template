@@ -1,0 +1,6 @@
+{
+	"db_write_batchsize" : 10,
+	"adnl_max_retry" : 50,
+	"db_conn_string" : "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@database:5432/$POSTGRES_DB",
+	"print_every" : 100
+}

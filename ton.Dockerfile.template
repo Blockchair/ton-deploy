@@ -1,0 +1,30 @@
+FROM ubuntu:20.04 as tonNode
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN	apt-get install -y openssl wget gcc
+RUN	rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /var/ton-work/db
+RUN	mkdir -p /var/ton-work/db/static
+RUN	mkdir -p /var/ton-work/db/keyring
+
+COPY --from=ton_builder /ton/build/lite-client/lite-client /usr/local/bin/
+COPY --from=ton_builder /ton/build/validator-engine/validator-engine /usr/local/bin/
+COPY --from=ton_builder /ton/build/validator-engine-console/validator-engine-console /usr/local/bin/
+COPY --from=ton_builder /ton/build/utils/generate-random-id /usr/local/bin/
+
+
+WORKDIR /var/ton-work/db
+ENV PUBLIC_IP="$PUBLIC_IP"
+ENV CONSOLE_PORT="$CONSOLE_PORT"
+ENV LITESERVER=$LITESERVER
+ENV LITE_PORT="$LITE_PORT"
+EXPOSE $LITE_PORT
+EXPOSE $CONSOLE_PORT
+
+COPY --from=ton_builder /ton/docker/control.template /var/ton-work/db/control.template
+COPY ./scripts/genKeys.sh /var/ton-work/db/genKeys.sh
+RUN chmod +x genKeys.sh
+RUN /var/ton-work/db/genKeys.sh
+
+ENTRYPOINT [ "validator-engine", "-c", "/var/ton-work/db/config.json", "-C", "/var/ton-work/db/ton-global.config", "--db", "/var/ton-work/db", "--state-ttl", "315360000", "--archive-ttl", "315360000", "--block-ttl", "315360000" ]

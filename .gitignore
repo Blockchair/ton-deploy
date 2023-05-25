@@ -1,0 +1,13 @@
+keys
+Dockerfile
+logs
+ton.env
+database.env
+docker-compose.yaml
+liteserver.pub
+local_config.*
+!*.template
+blockchain-explorer
+medium
+indexer.Dockerfile
+.vscode

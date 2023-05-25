@@ -1,0 +1,71 @@
+services:
+
+  web:
+    container_name: web
+    image: nginx
+    restart: always
+    networks: 
+      - ton-network
+    build: 
+      context: .
+      dockerfile: nginx.Dockerfile
+      target: nginxBuilder
+    ports: 
+      - $NGINX_PORT:10001
+    depends_on:
+      - database
+      - indexer
+
+  api:
+    image: ton_api
+    restart: always
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+      target: apiTon
+    expose:
+      - "14001"
+    networks:
+      - ton-network
+    depends_on:
+      - database
+      - web
+      - indexer
+
+  indexer:
+    container_name: indexer
+    image: ton_indexer
+    restart: always
+    build:
+      context: .
+      dockerfile: indexer.Dockerfile
+      target: ton_indexer
+    networks:
+      - ton-network
+    depends_on:
+      - database
+
+  database:
+    container_name: ton_database
+    image: postgres:15
+    build:
+      context: .
+      dockerfile: migration.Dockerfile
+      target: ton_migration
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/postgresql.conf:/etc/postgresql.conf
+    ports:
+      - 5432:5432
+    env_file: ton.env
+    networks:
+      - ton-network
+
+networks:
+  ton-network: {}
+
+volumes:
+  pgdata:
+    external: true
+    name:
+      parse_data_test

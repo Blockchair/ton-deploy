@@ -1,0 +1,19 @@
+FROM ubuntu:20.04 as ton_indexer
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt update	&& \
+	apt install lsb-release ca-certificates apt-transport-https software-properties-common \
+	build-essential openssl libssl-dev postgresql -y
+
+RUN mkdir -p /var/ton-indexer && \
+	mkdir -p /var/ton-indexer/static
+
+COPY --from=ton_builder /ton/build/medium-client/medium-client /var/ton-indexer
+COPY --from=ton_builder /ton/medium-client/create_db.sql ./create_db.sql
+COPY ./local_config.cfg /var/ton-indexer/medium-client.config
+COPY --from=ton_node /var/ton-work/db/liteserver.pub /var/ton-indexer/liteserver.pub
+
+WORKDIR /var/ton-indexer
+
+ENTRYPOINT ["./medium-client", "-a", "$PUBLIC_IP:$LITE_PORT", "-p", "liteserver.pub"]

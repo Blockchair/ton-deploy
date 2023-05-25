@@ -1,0 +1,24 @@
+services:
+  ton:
+    container_name: tonNode
+    image: ton_node
+    restart: always
+    build:
+      context: .
+      dockerfile: ton.Dockerfile
+      target: tonNode
+    volumes:
+      - tondata:/var/ton-work/db/
+    network_mode: "host"
+
+networks:
+  host:
+    name: host
+    external: true
+
+
+volumes:
+  tondata:
+    external: true
+    name:
+      tondata
